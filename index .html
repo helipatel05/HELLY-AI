@@ -188,7 +188,7 @@ let isRecording = false, mediaRecorder = null, chunks = [], timerInterval = null
 let moodHistory = [];
 try { moodHistory = JSON.parse(localStorage.getItem('helly_moods') || '[]'); } catch(e) {}
 
-let ANTHROPIC_API_KEY = '';
+let ANTHROPIC_API_KEY = 'AAPKI_GEMINI_KEY_YAHAN';
 try { ANTHROPIC_API_KEY = localStorage.getItem('helly_api_key') || ''; } catch(e) {}
 
 window.onload = function() {
@@ -199,7 +199,7 @@ window.onload = function() {
 
 function saveApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key.startsWith('sk-')) { alert('Valid API key daalo (sk- se start hoti hai)'); return; }
+
   ANTHROPIC_API_KEY = key;
   try { localStorage.setItem('helly_api_key', key); } catch(e) {}
   document.getElementById('apiSetup').style.display = 'none';
