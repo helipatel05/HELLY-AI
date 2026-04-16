@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helly AI — Mental Health Companion</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fdf6ee; min-height: 100vh; color: #2b3d50; }
+.app { max-width: 480px; margin: 0 auto; padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 24px; }
+.header { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 48px; height: 48px; background: #c0392b; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.logo-icon svg { width: 28px; height: 28px; fill: white; }
+.logo-text { font-size: 26px; font-weight: 700; font-family: Georgia, serif; color: #2b3d50; }
+.tabs { display: flex; background: rgba(43,61,80,0.08); padding: 4px; border-radius: 999px; border: 1px solid rgba(43,61,80,0.12); }
+.tab { display: flex; align-items: center; gap: 6px; padding: 8px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; background: none; color: rgba(43,61,80,0.5); transition: all 0.2s; }
+.tab.active { background: white; color: #c0392b; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.section { display: flex; flex-direction: column; align-items: center; gap: 32px; padding: 20px 0; }
+.mic-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+.mic-pulse { position: absolute; width: 200px; height: 200px; border-radius: 50%; background: #c0392b; opacity: 0; animation: none; }
+.mic-pulse.active { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{transform:scale(0.8);opacity:0} 50%{transform:scale(1.4);opacity:0.15} }
+.mic-btn { position: relative; z-index: 1; width: 140px; height: 140px; border-radius: 50%; border: 4px solid #e0d8cc; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 6px 6px 0 rgba(43,61,80,0.1); }
+.mic-btn:hover { transform: scale(1.04); }
+.mic-btn:active { transform: scale(0.96); }
+.mic-btn.recording { background: #c0392b; border-color: #2b3d50; }
+.mic-text { text-align: center; }
+.mic-title { font-size: 26px; font-weight: 700; font-family: Georgia, serif; color: #2b3d50; }
+.mic-sub { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: rgba(43,61,80,0.5); margin-top: 6px; }
+.cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
+.s-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid rgba(43,61,80,0.1); box-shadow: 3px 3px 0 rgba(43,61,80,0.06); }
+.card-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(43,61,80,0.45); font-weight: 700; display: block; margin-bottom: 6px; }
+.card-value { font-size: 14px; color: #2b3d50; line-height: 1.5; }
+.pill-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 999px; border: 1.5px solid #2b3d50; background: white; color: #2b3d50; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.pill-btn:hover { background: #2b3d50; color: white; }
+.error-box { background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.2); border-radius: 12px; padding: 14px 18px; font-size: 13px; color: #c0392b; text-align: center; }
+.result-section { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+.emergency-box { background: rgba(192,57,43,0.08); border: 1px solid rgba(192,57,43,0.25); border-radius: 16px; padding: 20px; display: flex; gap: 14px; }
+.emergency-title { font-size: 16px; font-weight: 700; color: #c0392b; margin-bottom: 6px; }
+.emergency-sub { font-size: 13px; color: rgba(43,61,80,0.6); margin-bottom: 14px; line-height: 1.5; }
+.call-btn { display: inline-flex; align-items: center; gap: 8px; background: #c0392b; color: white; padding: 10px 20px; border-radius: 999px; font-size: 13px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; }
+.result-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
+.sentiment-bar { height: 4px; background: rgba(43,61,80,0.1); border-radius: 4px; overflow: hidden; margin-top: 10px; }
+.sentiment-fill { height: 100%; background: #c0392b; border-radius: 4px; transition: width 1s ease; }
+.coping-item { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+.coping-item span { font-size: 13px; color: rgba(43,61,80,0.85); line-height: 1.5; }
+.hotline-link { display: flex; justify-content: space-between; align-items: center; background: #fdf6ee; border: 1px solid rgba(43,61,80,0.1); border-radius: 12px; padding: 14px 16px; text-decoration: none; color: #2b3d50; margin-bottom: 10px; }
+.hotline-num { color: #c0392b; font-family: monospace; font-size: 14px; font-weight: 700; }
+.footer { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.footer-btn { display: flex; align-items: center; gap: 8px; padding: 14px 28px; background: #2b3d50; color: white; border-radius: 999px; font-size: 15px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; }
+.footer-quote { font-style: italic; font-size: 13px; color: #c0392b; font-family: Georgia, serif; text-align: center; }
+.footer-disclaimer { font-size: 10px; color: rgba(43,61,80,0.35); text-align: center; max-width: 320px; line-height: 1.6; }
+.lang-input-wrap { width: 100%; background: white; border-radius: 16px; border: 1px solid rgba(43,61,80,0.1); padding: 16px; }
+.lang-input { width: 100%; border: 1px solid rgba(43,61,80,0.15); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: #2b3d50; resize: vertical; min-height: 80px; font-family: inherit; background: #fdf6ee; }
+.lang-input:focus { outline: none; border-color: #c0392b; }
+.submit-text-btn { margin-top: 10px; width: 100%; padding: 12px; border-radius: 10px; background: #c0392b; color: white; font-weight: 600; font-size: 14px; border: none; cursor: pointer; }
+.submit-text-btn:hover { background: #a93226; }
+.mood-tag { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 600; background: rgba(192,57,43,0.08); color: #c0392b; border: 1px solid rgba(192,57,43,0.15); margin: 4px; }
+.chart-bars { display: flex; align-items: flex-end; gap: 10px; height: 120px; margin-top: 16px; }
+.bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.bar { width: 100%; background: rgba(192,57,43,0.2); border-radius: 6px 6px 0 0; }
+.spinner { width: 44px; height: 44px; border: 3px solid rgba(192,57,43,0.2); border-top-color: #c0392b; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-overlay { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 40px; }
+.api-key-banner { background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 14px 18px; font-size: 13px; color: #856404; }
+.api-key-input { width: 100%; border: 1px solid rgba(43,61,80,0.15); border-radius: 8px; padding: 10px 12px; font-size: 13px; margin-top: 8px; font-family: monospace; background: white; }
+.api-key-btn { margin-top: 8px; padding: 8px 16px; border-radius: 8px; background: #2b3d50; color: white; border: none; cursor: pointer; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- API Key Setup -->
+  <div id="apiSetup" class="api-key-banner" style="display:none">
+    <strong>API Key Setup</strong><br>
+    Apna Anthropic API key daalo (claude.ai se free milta hai):<br>
+    <input type="password" class="api-key-input" id="apiKeyInput" placeholder="sk-ant-...">
+    <br><button class="api-key-btn" onclick="saveApiKey()">Save Key</button>
+    <a href="https://console.anthropic.com/" target="_blank" style="display:block;margin-top:6px;font-size:12px;color:#c0392b">API key kahan se milega? →</a>
+  </div>
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </div>
+      <div class="logo-text">Helly AI</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-talk" onclick="switchTab('talk')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        Talk
+      </button>
+      <button class="tab" id="tab-trends" onclick="switchTab('trends')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Trends
+      </button>
+    </div>
+  </div>
+
+  <!-- TALK VIEW -->
+  <div id="talk-view">
+    <div id="input-stage">
+      <div class="section">
+        <div class="mic-wrap">
+          <div class="mic-pulse" id="micPulse"></div>
+          <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+            <svg id="micIcon" viewBox="0 0 24 24" fill="none" stroke="#c0392b" stroke-width="2" style="width:52px;height:52px">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+          </button>
+        </div>
+        <div class="mic-text">
+          <div class="mic-title" id="micTitle">How are you feeling today?</div>
+          <div class="mic-sub" id="micSub">Tell me about your day in your village</div>
+        </div>
+      </div>
+
+      <div class="lang-input-wrap">
+        <span class="card-label">Ya text mein likho (Hindi, Gujarati, Marathi, English)</span>
+        <textarea class="lang-input" id="textInput" placeholder="Aaj main theek nahi feel kar raha / I'm feeling anxious today..."></textarea>
+        <button class="submit-text-btn" onclick="analyzeText()">Analyze →</button>
+      </div>
+
+      <div style="height:16px"></div>
+      <div class="cards-grid">
+        <div class="s-card">
+          <span class="card-label">Privacy First</span>
+          <div class="card-value">Your voice is processed securely and never shared.</div>
+        </div>
+        <div class="s-card">
+          <span class="card-label">Cultural Support</span>
+          <div class="card-value">Hindi, Gujarati, Marathi & English supported.</div>
+        </div>
+      </div>
+      <div id="errorBox" style="display:none;margin-top:16px" class="error-box"></div>
+    </div>
+
+    <div id="loading-stage" style="display:none">
+      <div class="loading-overlay">
+        <div class="spinner"></div>
+        <div class="mic-title" id="loadingText">Helly sun rahi hai...</div>
+        <div style="font-size:13px;color:rgba(43,61,80,0.5)">Thoda wait karo</div>
+      </div>
+    </div>
+
+    <div id="result-stage" style="display:none">
+      <div class="result-section" id="resultContent"></div>
+      <div style="height:20px"></div>
+      <button class="pill-btn" style="width:100%;justify-content:center" onclick="resetApp()">
+        Talk Again →
+      </button>
+    </div>
+  </div>
+
+  <!-- TRENDS VIEW -->
+  <div id="trends-view" style="display:none">
+    <div style="display:flex;flex-direction:column;gap:20px">
+      <div style="font-size:20px;font-weight:700;font-family:Georgia,serif;color:#2b3d50">Your Mood Trends</div>
+      <div class="s-card">
+        <span class="card-label">This Week</span>
+        <div class="chart-bars" id="trendBars"></div>
+        <div style="display:flex;gap:10px;margin-top:8px" id="trendLabels"></div>
+      </div>
+      <div class="s-card">
+        <span class="card-label">Recent Moods</span>
+        <div id="moodTags" style="margin-top:8px"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="tel:14416" class="footer-btn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.27-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Connect to Tele MANAS (14416)
+    </a>
+    <div class="footer-quote">✦ "Dava and Dua" — Healing through care and mindfulness</div>
+    <div class="footer-disclaimer">Helly AI is an experimental tool and not a replacement for professional medical advice. In case of emergency, please call 14416 immediately.</div>
+  </div>
+</div>
+
+<script>
+let isRecording = false, mediaRecorder = null, chunks = [], timerInterval = null, recordingSeconds = 0;
+let moodHistory = [];
+try { moodHistory = JSON.parse(localStorage.getItem('helly_moods') || '[]'); } catch(e) {}
+
+let ANTHROPIC_API_KEY = '';
+try { ANTHROPIC_API_KEY = localStorage.getItem('helly_api_key') || ''; } catch(e) {}
+
+window.onload = function() {
+  if (!ANTHROPIC_API_KEY) {
+    document.getElementById('apiSetup').style.display = 'block';
+  }
+};
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-')) { alert('Valid API key daalo (sk- se start hoti hai)'); return; }
+  ANTHROPIC_API_KEY = key;
+  try { localStorage.setItem('helly_api_key', key); } catch(e) {}
+  document.getElementById('apiSetup').style.display = 'none';
+  alert('API key save ho gayi! Ab app use kar sakte ho.');
+}
+
+function switchTab(tab) {
+  document.getElementById('tab-talk').classList.toggle('active', tab === 'talk');
+  document.getElementById('tab-trends').classList.toggle('active', tab === 'trends');
+  document.getElementById('talk-view').style.display = tab === 'talk' ? 'block' : 'none';
+  document.getElementById('trends-view').style.display = tab === 'trends' ? 'block' : 'none';
+  if (tab === 'trends') renderTrends();
+}
+
+async function toggleRecording() {
+  if (isRecording) stopRecording();
+  else await startRecording();
+}
+
+async function startRecording() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    chunks = [];
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: 'audio/webm' });
+      const reader = new FileReader();
+      reader.readAsDataURL(blob);
+      reader.onloadend = () => analyze(null, reader.result.split(',')[1]);
+      stream.getTracks().forEach(t => t.stop());
+    };
+    mediaRecorder.start();
+    isRecording = true;
+    recordingSeconds = 0;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('micPulse').classList.add('active');
+    document.getElementById('micTitle').textContent = "I'm listening...";
+    document.getElementById('micIcon').innerHTML = '<rect x="6" y="6" width="12" height="12" rx="2" fill="white"/>';
+    document.getElementById('micIcon').setAttribute('stroke', 'white');
+    timerInterval = setInterval(() => {
+      recordingSeconds++;
+      const m = Math.floor(recordingSeconds/60), s = recordingSeconds%60;
+      document.getElementById('micSub').textContent = `Recording: ${m}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+  } catch(e) { showError("Microphone access allow karo!"); }
+}
+
+function stopRecording() {
+  if (mediaRecorder && isRecording) {
+    mediaRecorder.stop(); isRecording = false; clearInterval(timerInterval);
+    document.getElementById('micBtn').classList.remove('recording');
+    document.getElementById('micPulse').classList.remove('active');
+    document.getElementById('micTitle').textContent = "Thinking...";
+    document.getElementById('micSub').textContent = '';
+    document.getElementById('micIcon').innerHTML = '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>';
+    document.getElementById('micIcon').setAttribute('stroke', '#c0392b');
+  }
+}
+
+function analyzeText() {
+  const text = document.getElementById('textInput').value.trim();
+  if (!text) { showError("Kuch likho ya voice use karo!"); return; }
+  analyze(text, null);
+}
+
+function showStage(stage) {
+  document.getElementById('input-stage').style.display = stage === 'input' ? 'block' : 'none';
+  document.getElementById('loading-stage').style.display = stage === 'loading' ? 'block' : 'none';
+  document.getElementById('result-stage').style.display = stage === 'result' ? 'block' : 'none';
+}
+
+async function analyze(text, audioBase64) {
+  if (!ANTHROPIC_API_KEY) {
+    showError("Pehle API key daalo (upar yellow box mein).");
+    document.getElementById('apiSetup').style.display = 'block';
+    return;
+  }
+  showStage('loading'); hideError();
+  const phrases = ["Helly sun rahi hai...", "Aapka mood samajh raha hun...", "Thoda wait karo..."];
+  let pi = 0;
+  const lt = setInterval(() => { document.getElementById('loadingText').textContent = phrases[pi++ % phrases.length]; }, 2000);
+
+  try {
+    const userContent = [{ type: "text", text: text || "I want to share how I'm feeling today." }];
+    const systemPrompt = `You are Helly AI, an empathetic mental health companion for rural Indian users. Analyze user input and respond ONLY with valid JSON, no markdown:
+{"sentiment":"positive/neutral/anxious/sad/distressed","detectedSigns":["sign1"],"summary":"Brief empathetic response in user's language","copingTechniques":["tip1","tip2","tip3"],"isEmergency":false,"languageDetected":"Hindi/English/Gujarati/Marathi"}
+Be warm, culturally sensitive. Suggest Pranayama, community walking, mindfulness etc.`;
+
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true" },
+      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 1000, system: systemPrompt, messages: [{ role: "user", content: userContent }] })
+    });
+
+    clearInterval(lt);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || "API error");
+    }
+    const data = await res.json();
+    const raw = data.content.map(c => c.text || '').join('');
+    const result = JSON.parse(raw.replace(/```json\n?|```/g, '').trim());
+    saveMood(result.sentiment);
+    showResult(result);
+  } catch(e) {
+    clearInterval(lt);
+    showStage('input');
+    showError("Error: " + (e.message || "Dobara try karo."));
+  }
+}
+
+function saveMood(sentiment) {
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  moodHistory.push({ day: days[new Date().getDay()], mood: sentiment, time: Date.now() });
+  if (moodHistory.length > 14) moodHistory = moodHistory.slice(-14);
+  try { localStorage.setItem('helly_moods', JSON.stringify(moodHistory)); } catch(e) {}
+}
+
+function showResult(result) {
+  showStage('result');
+  const scores = { positive:90, neutral:60, anxious:38, sad:25, distressed:12 };
+  const score = scores[result.sentiment] || 50;
+  let html = '';
+  if (result.isEmergency) {
+    html += `<div class="emergency-box"><div>
+      <div class="emergency-title">⚠ Urgent Support Needed</div>
+      <div class="emergency-sub">Please reach out to a professional immediately.</div>
+      <a href="tel:14416" class="call-btn">Call Tele MANAS (14416)</a>
+    </div></div>`;
+  }
+  html += `<div class="result-grid">
+    <div class="s-card">
+      <span class="card-label">Mood Detected</span>
+      <div class="card-value" style="font-weight:700;text-transform:capitalize">${result.sentiment}</div>
+      <div class="sentiment-bar"><div class="sentiment-fill" style="width:${score}%"></div></div>
+    </div>
+    <div class="s-card">
+      <span class="card-label">Helly's Assessment</span>
+      <div class="card-value" style="font-style:italic">"${result.summary}"</div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="s-card">
+      <span class="card-label" style="margin-bottom:12px;display:block">Coping Tips</span>
+      ${result.copingTechniques.map(t => `<div class="coping-item"><span style="color:#c0392b;margin-right:4px">✓</span><span>${t}</span></div>`).join('')}
+    </div>
+    <div class="s-card">
+      <span class="card-label" style="margin-bottom:12px;display:block">Need to talk?</span>
+      <a href="tel:14416" class="hotline-link"><span style="font-size:13px;font-weight:600">Tele MANAS</span><span class="hotline-num">14416</span></a>
+      <a href="tel:9152987821" class="hotline-link"><span style="font-size:13px;font-weight:600">iCall (TISS)</span><span class="hotline-num">9152987821</span></a>
+    </div>
+  </div>`;
+  if (result.detectedSigns?.length) {
+    html += `<div class="s-card"><span class="card-label">Signs Noticed</span><div style="margin-top:8px">${result.detectedSigns.map(s=>`<span class="mood-tag">${s}</span>`).join('')}</div></div>`;
+  }
+  document.getElementById('resultContent').innerHTML = html;
+}
+
+function resetApp() {
+  showStage('input');
+  document.getElementById('micTitle').textContent = 'How are you feeling today?';
+  document.getElementById('micSub').textContent = 'Tell me about your day in your village';
+  document.getElementById('textInput').value = '';
+  hideError();
+}
+
+function showError(msg) { const e = document.getElementById('errorBox'); e.textContent = msg; e.style.display = 'block'; }
+function hideError() { document.getElementById('errorBox').style.display = 'none'; }
+
+function renderTrends() {
+  const scores = { positive:100, neutral:65, anxious:40, sad:25, distressed:10 };
+  const recent = moodHistory.slice(-7);
+  if (!recent.length) {
+    document.getElementById('trendBars').innerHTML = '<div style="color:rgba(43,61,80,0.4);font-size:13px;padding:20px;width:100%">Abhi koi data nahi. Talk tab se baat karo!</div>';
+    document.getElementById('moodTags').innerHTML = '<span class="mood-tag">Koi data nahi</span>';
+    return;
+  }
+  document.getElementById('trendBars').innerHTML = recent.map(m => {
+    const h = Math.round((scores[m.mood]||50)*1.2);
+    return `<div class="bar-wrap"><div class="bar" style="height:${h}px" title="${m.mood}"></div></div>`;
+  }).join('');
+  document.getElementById('trendLabels').innerHTML = recent.map(m => `<div style="flex:1;text-align:center;font-size:10px;color:rgba(43,61,80,0.5)">${m.day}</div>`).join('');
+  const allMoods = [...new Set(moodHistory.map(m => m.mood))];
+  document.getElementById('moodTags').innerHTML = allMoods.map(m => `<span class="mood-tag" style="text-transform:capitalize">${m}</span>`).join('');
+}
+</script>
+</body>
+</html>
